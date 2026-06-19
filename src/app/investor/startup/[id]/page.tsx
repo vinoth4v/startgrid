@@ -6,6 +6,10 @@ import ConnectButton from "./ConnectButton";
 import PitchSection from "./PitchSection";
 import PrivateNotes from "./PrivateNotes";
 import MilestonesTimeline from "./MilestonesTimeline";
+import AIBriefButton from "./AIBriefButton";
+import DDChecklist from "./DDChecklist";
+import AddToPipelineButton from "./AddToPipelineButton";
+import FeedbackModal from "./FeedbackModal";
 import Sidebar from "@/components/Sidebar";
 import { getNote } from "@/app/actions/investor-notes";
 import { getMilestones } from "@/app/actions/milestones";
@@ -166,7 +170,7 @@ export default async function StartupProfilePage({ params }: { params: { id: str
             />
           )}
 
-          {/* Connect card */}
+          {/* Action bar */}
           <div style={{
             backgroundColor: "white", borderRadius: 12,
             border: "0.5px solid #E2E8F0",
@@ -180,10 +184,20 @@ export default async function StartupProfilePage({ params }: { params: { id: str
                 Interested in {startup.company_name ?? "this startup"}?
               </h2>
               <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748B" }}>
-                Send a connection request to start a direct conversation.
+                Send a connection request or generate an AI investment brief.
               </p>
             </div>
-            <ConnectButton startupId={startup.id} initialStatus={connectionStatus} />
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {investorProfile && (
+                <>
+                  <FeedbackModal startupId={startup.id} companyName={startup.company_name ?? "Startup"} />
+                  <AddToPipelineButton startupId={startup.id} />
+                  <DDChecklist startupId={startup.id} companyName={startup.company_name ?? "Startup"} />
+                  <AIBriefButton startupId={startup.id} companyName={startup.company_name ?? "Startup"} />
+                </>
+              )}
+              <ConnectButton startupId={startup.id} initialStatus={connectionStatus} />
+            </div>
           </div>
         </div>
       </main>

@@ -7,6 +7,9 @@ import ConnectionRequests from "./ConnectionRequests";
 import ProfileStrength from "./ProfileStrength";
 import ShareCard from "./ShareCard";
 import MilestonesSection from "./MilestonesSection";
+import ReadinessScore from "./ReadinessScore";
+import FundingTracker from "./FundingTracker";
+import FeedbackCard from "./FeedbackCard";
 import Sidebar from "@/components/Sidebar";
 import { getMilestones } from "@/app/actions/milestones";
 
@@ -275,6 +278,26 @@ export default async function StartupDashboardPage() {
               {hasProfile && (
                 <MilestonesSection startupId={profile.id} initialMilestones={milestones} />
               )}
+
+              {/* Funding Tracker */}
+              {hasProfile && (
+                <FundingTracker
+                  startupId={profile.id}
+                  initialGoal={profile.funding_goal_amount ?? null}
+                  initialRaised={profile.funding_raised ?? null}
+                  initialStatus={profile.funding_round_status ?? null}
+                />
+              )}
+
+              {/* AI Readiness Score */}
+              {hasProfile && (
+                <div style={{ marginBottom: 16 }}>
+                  <ReadinessScore />
+                </div>
+              )}
+
+              {/* Anonymous feedback from investors */}
+              {hasProfile && <FeedbackCard startupId={profile.id} />}
 
               {/* Messages link */}
               {acceptedConnCount > 0 && (

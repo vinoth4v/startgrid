@@ -71,12 +71,12 @@ export default async function MessagesPage({
   const startupIds = connections.map((c: { startup_id: string }) => c.startup_id);
 
   const [{ data: investorProfiles }, { data: startupProfiles }] = await Promise.all([
-    admin.from("investor_profiles").select("id, name, firm, user_id").in("id", investorIds),
-    admin.from("startup_profiles").select("id, company_name, sector, stage, user_id").in("id", startupIds),
+    admin.from("investor_profiles").select("id, name, firm, user_id, criteria").in("id", investorIds),
+    admin.from("startup_profiles").select("id, company_name, sector, stage, country, website, logo_url, user_id").in("id", startupIds),
   ]);
 
-  const investorMap = Object.fromEntries((investorProfiles ?? []).map((i: { id: string; name: string; firm: string; user_id: string }) => [i.id, i]));
-  const startupMap = Object.fromEntries((startupProfiles ?? []).map((s: { id: string; company_name: string; sector: string; stage: string; user_id: string }) => [s.id, s]));
+  const investorMap = Object.fromEntries((investorProfiles ?? []).map((i: { id: string; name: string; firm: string; user_id: string; criteria: unknown }) => [i.id, i]));
+  const startupMap = Object.fromEntries((startupProfiles ?? []).map((s: { id: string; company_name: string; sector: string; stage: string; country: string; website: string; logo_url: string; user_id: string }) => [s.id, s]));
 
   // Build sender display name map (userId → display name)
   const senderMap: Record<string, string> = {};
@@ -98,6 +98,11 @@ export default async function MessagesPage({
       otherName,
       sector: startup?.sector ?? null,
       stage: startup?.stage ?? null,
+      country: startup?.country ?? null,
+      website: startup?.website ?? null,
+      logoUrl: startup?.logo_url ?? null,
+      firm: investor?.firm ?? null,
+      startupId: startup?.id ?? null,
       lastMessage: null as string | null,
       lastAt: c.created_at,
     };
@@ -138,9 +143,10 @@ export default async function MessagesPage({
 
   return (
     <>
-      <Sidebar role={role} userInitials={userInitials} />
+      <Sidebar role={role} userInitials={userInitials} userName={myDisplayName} userEmail={user.email ?? ""} userId={user.id} />
       <MessagesClient
         userId={user.id}
+        myRole={role}
         threads={threads}
         initialMessages={initialMessages}
         selectedConnectionId={selectedConnectionId}

@@ -10,6 +10,11 @@ interface Thread {
   otherName: string;
   sector: string | null;
   stage: string | null;
+  country?: string | null;
+  website?: string | null;
+  logoUrl?: string | null;
+  firm?: string | null;
+  startupId?: string | null;
   lastMessage: string | null;
   lastAt: string;
 }
@@ -23,6 +28,7 @@ interface Message {
 
 interface Props {
   userId: string;
+  myRole?: string;
   threads: Thread[];
   initialMessages: Message[];
   selectedConnectionId: string | null;
@@ -47,7 +53,7 @@ function threadInitials(name: string) {
 }
 
 export default function MessagesClient({
-  userId, threads, initialMessages, selectedConnectionId: initialSelected,
+  userId, myRole, threads, initialMessages, selectedConnectionId: initialSelected,
   myDisplayName, senderMap,
 }: Props) {
   const router = useRouter();
@@ -322,6 +328,85 @@ export default function MessagesClient({
           </>
         )}
       </main>
+
+      {/* Right mini profile panel */}
+      {selectedId && activeThread && (
+        <aside style={{
+          width: 200, flexShrink: 0,
+          backgroundColor: "white", borderLeft: "0.5px solid #E2E8F0",
+          padding: "20px 16px", overflowY: "auto",
+          display: "flex", flexDirection: "column", gap: 14,
+        }}>
+          {/* Avatar */}
+          <div style={{ textAlign: "center" }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 12, margin: "0 auto 10px",
+              background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "white", fontWeight: 700, fontSize: 15, overflow: "hidden",
+            }}>
+              {activeThread.logoUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={activeThread.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : threadInitials(activeThread.otherName)
+              }
+            </div>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#0F172A", lineHeight: 1.4 }}>
+              {activeThread.otherName}
+            </p>
+            {activeThread.firm && (
+              <p style={{ margin: "2px 0 0", fontSize: 10, color: "#94A3B8" }}>{activeThread.firm}</p>
+            )}
+          </div>
+
+          <div style={{ height: "0.5px", backgroundColor: "#F1F5F9" }} />
+
+          {/* Details */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {activeThread.sector && (
+              <div>
+                <p style={{ margin: "0 0 3px", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Sector</p>
+                <span style={{ fontSize: 10, fontWeight: 500, color: "#4F46E5", backgroundColor: "#EEF2FF", borderRadius: 20, padding: "2px 8px" }}>
+                  {activeThread.sector}
+                </span>
+              </div>
+            )}
+            {activeThread.stage && (
+              <div>
+                <p style={{ margin: "0 0 3px", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Stage</p>
+                <span style={{ fontSize: 10, fontWeight: 500, color: "#475569", backgroundColor: "#F8FAFC", border: "0.5px solid #E2E8F0", borderRadius: 20, padding: "2px 8px" }}>
+                  {activeThread.stage}
+                </span>
+              </div>
+            )}
+            {activeThread.country && (
+              <div>
+                <p style={{ margin: "0 0 3px", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Location</p>
+                <p style={{ margin: 0, fontSize: 11, color: "#64748B" }}>📍 {activeThread.country}</p>
+              </div>
+            )}
+            {activeThread.website && (
+              <div>
+                <p style={{ margin: "0 0 3px", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Website</p>
+                <a href={activeThread.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#4F46E5", wordBreak: "break-all" }}>
+                  {activeThread.website.replace(/^https?:\/\//, "")}
+                </a>
+              </div>
+            )}
+          </div>
+
+          {myRole === "investor" && activeThread.startupId && (
+            <a href={`/investor/startup/${activeThread.startupId}`} style={{
+              display: "block", textAlign: "center",
+              padding: "8px 0", borderRadius: 8,
+              border: "0.5px solid #C7D2FE", backgroundColor: "#EEF2FF",
+              fontSize: 11, fontWeight: 600, color: "#4F46E5", textDecoration: "none",
+            }}>
+              View full profile →
+            </a>
+          )}
+        </aside>
+      )}
     </div>
   );
 }

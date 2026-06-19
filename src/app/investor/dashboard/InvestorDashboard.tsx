@@ -29,6 +29,39 @@ function initials(name: string | null): string {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
+function computeMatchScore(
+  startup: Startup,
+  criteria: InvestorCriteria
+): number {
+  const hasCriteria = (criteria.stages?.length ?? 0) > 0 || (criteria.sectors?.length ?? 0) > 0;
+  if (!hasCriteria) return 0;
+  let score = 0;
+  const sectorMatch = startup.sector && criteria.sectors?.includes(startup.sector);
+  const stageMatch = startup.stage && criteria.stages?.includes(startup.stage);
+  const geoMatch = startup.country && criteria.geographies?.includes(startup.country);
+  if (sectorMatch) score += 40;
+  if (stageMatch) score += 40;
+  if (geoMatch) score += 20;
+  return score;
+}
+
+function MatchBadge({ score, criteria }: { score: number; criteria: InvestorCriteria }) {
+  const hasCriteria = (criteria.stages?.length ?? 0) > 0 || (criteria.sectors?.length ?? 0) > 0;
+  if (!hasCriteria) return null;
+  const color = score >= 80 ? "#059669" : score >= 50 ? "#D97706" : "#94A3B8";
+  const bg = score >= 80 ? "#ECFDF5" : score >= 50 ? "#FFFBEB" : "#F8FAFC";
+  const border = score >= 80 ? "#A7F3D0" : score >= 50 ? "#FDE68A" : "#E2E8F0";
+  return (
+    <span title={`Match score: Sector, Stage, Geography`} style={{
+      fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 20,
+      backgroundColor: bg, color, border: `0.5px solid ${border}`,
+      letterSpacing: "0.02em",
+    }}>
+      {score}% match
+    </span>
+  );
+}
+
 const STAGES = ["Pre-seed", "Seed", "Series A"];
 const SECTORS = ["Climate Tech", "B2B SaaS", "Fintech", "Health Tech", "Deep Tech", "Marketplace"];
 
@@ -89,6 +122,8 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
   const notedSet = new Set(notedStartupIds);
   const [toast, setToast] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState(0);
+  const [compareSet, setCompareSet] = useState<Set<string>>(new Set());
+  const [sortByMatch, setSortByMatch] = useState(false);
 
   function toggle(arr: string[], val: string, set: (v: string[]) => void) {
     set(arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val]);
@@ -108,7 +143,7 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
     await toggleFavourite(investorId, startupId, !wasAdded);
   }, [favSet, investorId]);
 
-  const filtered = startups.filter(s => {
+  let filtered = startups.filter(s => {
     if (activeTab === "favourites" && !favSet.has(s.id)) return false;
     if (activeStages.length > 0 && s.stage && !activeStages.includes(s.stage)) return false;
     if (activeSectors.length > 0 && s.sector && !activeSectors.includes(s.sector)) return false;
@@ -116,8 +151,18 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
     return true;
   });
 
+  if (sortByMatch) {
+    filtered = [...filtered].sort((a, b) => computeMatchScore(b, criteria) - computeMatchScore(a, criteria));
+  }
+
   const hasFilters = activeStages.length > 0 || activeSectors.length > 0 || activeGeos.length > 0;
   const favCount = favSet.size;
+
+  function toggleCompare(id: string) {
+    const next = new Set(compareSet);
+    if (next.has(id)) { next.delete(id); } else if (next.size < 3) { next.add(id); }
+    setCompareSet(next);
+  }
 
   return (
     <div style={{
@@ -196,6 +241,15 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
               {filtered.length} startup{filtered.length !== 1 ? "s" : ""}{activeTab === "favourites" ? " saved" : " match your criteria"}
             </p>
           </div>
+          <button type="button" onClick={() => setSortByMatch(v => !v)} style={{
+            padding: "7px 14px", borderRadius: 8, cursor: "pointer",
+            fontSize: 11, fontWeight: 600,
+            border: sortByMatch ? "0.5px solid #059669" : "0.5px solid #E2E8F0",
+            backgroundColor: sortByMatch ? "#ECFDF5" : "white",
+            color: sortByMatch ? "#059669" : "#64748B",
+          }}>
+            {sortByMatch ? "✓ Sorted by match" : "↕ Sort by match"}
+          </button>
         </div>
 
         {/* Tabs */}
@@ -266,11 +320,13 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
               const isFav = favSet.has(startup.id);
               const hasNote = notedSet.has(startup.id);
               const stageColor = STAGE_COLORS[startup.stage ?? ""] ?? "#6366F1";
+              const matchScore = computeMatchScore(startup, criteria);
+              const isComparing = compareSet.has(startup.id);
               return (
                 <div key={startup.id} style={{
                   backgroundColor: "white", borderRadius: 12,
-                  border: "0.5px solid #E2E8F0",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                  border: `0.5px solid ${isComparing ? "#4F46E5" : "#E2E8F0"}`,
+                  boxShadow: isComparing ? "0 0 0 2px rgba(79,70,229,0.15)" : "0 1px 4px rgba(0,0,0,0.04)",
                   padding: "18px",
                   display: "flex", flexDirection: "column", gap: 12,
                   transition: "border-color 0.15s, box-shadow 0.15s",
@@ -285,11 +341,28 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
                     (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
                   }}
                 >
-                  {/* Notes indicator + Heart button */}
+                  {/* Notes indicator + Heart button + Compare */}
                   <div style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 2 }}>
                     {hasNote && (
                       <span title="You have notes on this startup" style={{ fontSize: 13, lineHeight: 1, padding: 4 }}>📝</span>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => toggleCompare(startup.id)}
+                      title={isComparing ? "Remove from comparison" : "Add to comparison"}
+                      style={{
+                        background: isComparing ? "#EEF2FF" : "none",
+                        border: isComparing ? "0.5px solid #C7D2FE" : "none",
+                        borderRadius: 4,
+                        cursor: compareSet.size >= 3 && !isComparing ? "not-allowed" : "pointer",
+                        fontSize: 11, lineHeight: 1, padding: "3px 5px",
+                        color: isComparing ? "#4F46E5" : "#CBD5E1",
+                        fontWeight: 700,
+                        opacity: compareSet.size >= 3 && !isComparing ? 0.4 : 1,
+                      }}
+                    >
+                      ⊞
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleFavourite(startup.id)}
@@ -344,6 +417,7 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
                         {startup.country}
                       </span>
                     )}
+                    <MatchBadge score={matchScore} criteria={criteria} />
                   </div>
 
                   {startup.website && (
@@ -397,6 +471,62 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
       {/* Toast */}
       {toast !== null && (
         <Toast key={toastKey} message={toast} onDone={() => setToast(null)} />
+      )}
+
+      {/* Compare sticky bar */}
+      {compareSet.size > 0 && (
+        <div style={{
+          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          backgroundColor: "#0B1628", borderRadius: 14,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+          padding: "14px 20px",
+          display: "flex", alignItems: "center", gap: 16,
+          zIndex: 500,
+          border: "0.5px solid rgba(255,255,255,0.1)",
+        }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#94A3B8" }}>
+            {compareSet.size} selected
+          </span>
+          <div style={{ display: "flex", gap: 8 }}>
+            {Array.from(compareSet).map(id => {
+              const s = startups.find(x => x.id === id);
+              return (
+                <div key={id} style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  backgroundColor: "rgba(255,255,255,0.08)",
+                  borderRadius: 8, padding: "5px 10px",
+                }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "white" }}>
+                    {s?.company_name ?? "Startup"}
+                  </span>
+                  <button type="button" onClick={() => toggleCompare(id)} style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: "#64748B", fontSize: 13, padding: 0, lineHeight: 1,
+                  }}>×</button>
+                </div>
+              );
+            })}
+          </div>
+          {compareSet.size >= 2 && (
+            <a
+              href={`/investor/compare?ids=${Array.from(compareSet).join(",")}`}
+              style={{
+                padding: "8px 16px", borderRadius: 8,
+                background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                color: "white", fontSize: 12, fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              Compare →
+            </a>
+          )}
+          <button type="button" onClick={() => setCompareSet(new Set())} style={{
+            background: "none", border: "none", color: "#64748B", cursor: "pointer",
+            fontSize: 13, padding: 0,
+          }}>
+            Clear
+          </button>
+        </div>
       )}
     </div>
   );
