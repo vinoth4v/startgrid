@@ -116,15 +116,23 @@ export default function HomePage() {
             ))}
           </nav>
 
-          <Link href="/request-access" style={{
-            display: "inline-flex", alignItems: "center",
-            background: "linear-gradient(135deg, #1B63D8, #0F3E9E)",
-            color: "white", fontSize: 13, fontWeight: 600, padding: "8px 20px",
-            borderRadius: 9, textDecoration: "none",
-            boxShadow: "0 2px 10px rgba(27,99,216,0.35)",
-          }}>
-            Request access
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <Link href="/login" style={{
+              fontSize: 13, fontWeight: 600, color: "#0C1E35",
+              textDecoration: "none", transition: "color 0.15s",
+            }}>
+              Sign in
+            </Link>
+            <Link href="/request-access" style={{
+              display: "inline-flex", alignItems: "center",
+              background: "linear-gradient(135deg, #1B63D8, #0F3E9E)",
+              color: "white", fontSize: 13, fontWeight: 600, padding: "8px 20px",
+              borderRadius: 9, textDecoration: "none",
+              boxShadow: "0 2px 10px rgba(27,99,216,0.35)",
+            }}>
+              Request access
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -488,6 +496,16 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── MEMBER BANNER ── */}
+      <section style={{ backgroundColor: "#EBF2FF", borderTop: "1px solid #BDD4F5", borderBottom: "1px solid #BDD4F5", padding: "14px 24px", textAlign: "center" }}>
+        <p style={{ margin: 0, fontSize: 13, color: "#2D4A6A" }}>
+          Already a member?{" "}
+          <Link href="/login" style={{ color: "#1B63D8", fontWeight: 600, textDecoration: "none" }}>
+            Sign in to your account →
+          </Link>
+        </p>
       </section>
 
       {/* ── CTA ── */}

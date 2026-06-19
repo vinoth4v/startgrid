@@ -13,7 +13,7 @@ export default async function PitchPreviewPage() {
 
   const { data: profile } = await supabase
     .from("startup_profiles")
-    .select("company_name, pitch_data, is_published")
+    .select("company_name, pitch_data, is_published, logo_url, cover_image_url, city, founded_year, employee_count, linkedin_url")
     .eq("user_id", user.id)
     .single();
 
@@ -28,6 +28,12 @@ export default async function PitchPreviewPage() {
       slides={slides}
       companyName={profile.company_name ?? "Your company"}
       isPublished={profile.is_published ?? false}
+      logoUrl={profile.logo_url ?? null}
+      coverImageUrl={profile.cover_image_url ?? null}
+      city={profile.city ?? null}
+      foundedYear={profile.founded_year ?? null}
+      employeeCount={profile.employee_count ?? null}
+      linkedinUrl={profile.linkedin_url ?? null}
     />
   );
 }

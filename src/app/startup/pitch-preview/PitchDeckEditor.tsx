@@ -3,11 +3,18 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { publishProfile, type PitchSlide } from "@/app/actions/generate-pitch";
+import SlideshowModal from "@/components/SlideshowModal";
 
 interface Props {
   slides: PitchSlide[];
   companyName: string;
   isPublished: boolean;
+  logoUrl?: string | null;
+  coverImageUrl?: string | null;
+  city?: string | null;
+  foundedYear?: string | null;
+  employeeCount?: string | null;
+  linkedinUrl?: string | null;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -23,7 +30,11 @@ const labelStyle: React.CSSProperties = {
   textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5,
 };
 
-export default function PitchDeckEditor({ slides: initial, companyName, isPublished }: Props) {
+function initials(name: string) {
+  return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+export default function PitchDeckEditor({ slides: initial, companyName, isPublished, logoUrl, coverImageUrl, city, foundedYear, employeeCount, linkedinUrl }: Props) {
   const [slides, setSlides] = useState<PitchSlide[]>(initial);
   const [editingSlide, setEditingSlide] = useState<number | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
@@ -31,6 +42,7 @@ export default function PitchDeckEditor({ slides: initial, companyName, isPublis
   const [draftNote, setDraftNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [slideshowIndex, setSlideshowIndex] = useState<number | null>(null);
 
   function startEdit(slide: PitchSlide) {
     setEditingSlide(slide.slideNumber);
@@ -113,6 +125,51 @@ export default function PitchDeckEditor({ slides: initial, companyName, isPublis
 
       <div style={{ maxWidth: 1040, margin: "0 auto", padding: "32px 24px" }}>
 
+        {/* Profile preview card */}
+        <div style={{
+          borderRadius: 14, overflow: "hidden",
+          border: "0.5px solid #E2E8F0",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          marginBottom: 28,
+        }}>
+          {/* Cover */}
+          <div style={{
+            height: coverImageUrl ? 120 : 56,
+            backgroundColor: "#0B1628",
+            backgroundImage: coverImageUrl
+              ? `url(${coverImageUrl})`
+              : "radial-gradient(circle, rgba(79,70,229,0.2) 1px, transparent 1px)",
+            backgroundSize: coverImageUrl ? "cover" : "24px 24px",
+            backgroundPosition: "center",
+            position: "relative",
+          }} />
+          {/* Company info bar */}
+          <div style={{ backgroundColor: "white", padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: 12, flexShrink: 0,
+              border: "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              overflow: "hidden", marginTop: -28, position: "relative",
+              backgroundColor: "#EEF2FF",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {logoUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={logoUrl} alt={companyName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : <span style={{ fontWeight: 700, fontSize: 16, color: "#4F46E5" }}>{initials(companyName)}</span>
+              }
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#0F172A", letterSpacing: "-0.2px" }}>{companyName}</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 5 }}>
+                {city && <span style={{ fontSize: 10, fontWeight: 500, color: "#475569", backgroundColor: "#F8FAFC", border: "0.5px solid #E2E8F0", borderRadius: 20, padding: "2px 8px" }}>📍 {city}</span>}
+                {foundedYear && <span style={{ fontSize: 10, fontWeight: 500, color: "#475569", backgroundColor: "#F8FAFC", border: "0.5px solid #E2E8F0", borderRadius: 20, padding: "2px 8px" }}>Est. {foundedYear}</span>}
+                {employeeCount && <span style={{ fontSize: 10, fontWeight: 500, color: "#475569", backgroundColor: "#F8FAFC", border: "0.5px solid #E2E8F0", borderRadius: 20, padding: "2px 8px" }}>{employeeCount} people</span>}
+                {linkedinUrl && <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, fontWeight: 500, color: "#4F46E5", backgroundColor: "#EEF2FF", border: "0.5px solid #C7D2FE", borderRadius: 20, padding: "2px 8px", textDecoration: "none" }}>LinkedIn ↗</a>}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Banner */}
         <div style={{
           backgroundColor: "#EEF2FF", border: "0.5px solid #C7D2FE",
@@ -134,6 +191,19 @@ export default function PitchDeckEditor({ slides: initial, companyName, isPublis
             <p style={{ fontSize: 13, color: "#DC2626", margin: 0 }}>{error}</p>
           </div>
         )}
+
+        {/* Slideshow button */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+          <button type="button" onClick={() => setSlideshowIndex(0)} style={{
+            display: "inline-flex", alignItems: "center", gap: 7,
+            padding: "8px 16px", borderRadius: 9,
+            border: "0.5px solid #C7D2FE", backgroundColor: "#EEF2FF",
+            fontSize: 13, fontWeight: 600, color: "#4F46E5", cursor: "pointer",
+            transition: "all 0.15s",
+          }}>
+            ⛶ View slideshow →
+          </button>
+        </div>
 
         {/* Slide grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
@@ -218,17 +288,32 @@ export default function PitchDeckEditor({ slides: initial, companyName, isPublis
                   <span style={{ fontSize: 10, fontWeight: 700, color: "#4F46E5", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     {String(slide.slideNumber).padStart(2, "0")}
                   </span>
-                  <button type="button" onClick={() => startEdit(slide)}
-                    className="group-hover:opacity-100"
-                    style={{
-                      opacity: 0, display: "flex", alignItems: "center", gap: 4,
-                      fontSize: 11, fontWeight: 500, color: "#4F46E5",
-                      backgroundColor: "#EEF2FF", border: "none",
-                      padding: "4px 10px", borderRadius: 6, cursor: "pointer",
-                      transition: "opacity 0.15s",
-                    }}>
-                    ✎ Edit
-                  </button>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }} className="group-hover:opacity-100" >
+                    <button type="button" onClick={() => setSlideshowIndex(slide.slideNumber - 1)}
+                      className="group-hover:opacity-100"
+                      style={{
+                        opacity: 0, display: "flex", alignItems: "center",
+                        fontSize: 13, color: "#94A3B8",
+                        backgroundColor: "transparent", border: "none",
+                        padding: "4px 6px", borderRadius: 6, cursor: "pointer",
+                        transition: "opacity 0.15s",
+                      }}
+                      title="Expand"
+                    >
+                      ⛶
+                    </button>
+                    <button type="button" onClick={() => startEdit(slide)}
+                      className="group-hover:opacity-100"
+                      style={{
+                        opacity: 0, display: "flex", alignItems: "center", gap: 4,
+                        fontSize: 11, fontWeight: 500, color: "#4F46E5",
+                        backgroundColor: "#EEF2FF", border: "none",
+                        padding: "4px 10px", borderRadius: 6, cursor: "pointer",
+                        transition: "opacity 0.15s",
+                      }}>
+                      ✎ Edit
+                    </button>
+                  </div>
                 </div>
 
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", margin: "0 0 12px", lineHeight: 1.3, letterSpacing: "-0.2px" }}>
@@ -254,6 +339,15 @@ export default function PitchDeckEditor({ slides: initial, companyName, isPublis
           ))}
         </div>
       </div>
+
+      {/* Slideshow modal */}
+      {slideshowIndex !== null && (
+        <SlideshowModal
+          slides={slides}
+          initialIndex={slideshowIndex}
+          onClose={() => setSlideshowIndex(null)}
+        />
+      )}
 
       {/* Bottom sticky bar */}
       <div style={{

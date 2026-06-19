@@ -182,7 +182,7 @@ export default async function StartupDashboardPage() {
                       fontSize: 12, fontWeight: 600, color: "#475569",
                       textDecoration: "none",
                     }}>View profile</Link>
-                    <Link href="/startup/onboard" style={{
+                    <Link href="/startup/onboard?mode=edit" style={{
                       padding: "7px 14px", borderRadius: 8,
                       backgroundColor: "transparent", border: "none",
                       fontSize: 12, fontWeight: 500, color: "#94A3B8",

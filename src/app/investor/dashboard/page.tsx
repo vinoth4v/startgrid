@@ -39,6 +39,13 @@ export default async function InvestorDashboardPage() {
     connectionMap[c.startup_id] = c.status;
   });
 
+  const { data: favourites } = await admin
+    .from("investor_favourites")
+    .select("startup_id")
+    .eq("investor_id", investorProfile.id);
+
+  const favouriteIds = (favourites ?? []).map((f: { startup_id: string }) => f.startup_id);
+
   const userInitials = investorProfile.name
     .split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
@@ -46,10 +53,12 @@ export default async function InvestorDashboardPage() {
     <>
       <Sidebar role="investor" userInitials={userInitials} />
       <InvestorDashboard
+        investorId={investorProfile.id}
         investorName={investorProfile.name}
         criteria={investorProfile.criteria}
         startups={startups ?? []}
         connectionMap={connectionMap}
+        favouriteIds={favouriteIds}
       />
     </>
   );

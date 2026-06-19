@@ -23,6 +23,16 @@ export interface OnboardingData {
   useOfFunds: string;
 }
 
+export interface IdentityData {
+  logoUrl?: string;
+  coverImageUrl?: string;
+  city?: string;
+  address?: string;
+  foundedYear?: string;
+  employeeCount?: string;
+  linkedinUrl?: string;
+}
+
 export interface PitchSlide {
   slideNumber: number;
   title: string;
@@ -31,7 +41,9 @@ export interface PitchSlide {
 }
 
 export async function generatePitch(
-  data: OnboardingData
+  data: OnboardingData,
+  isEdit = false,
+  identity?: IdentityData
 ): Promise<{ error: string } | undefined> {
   const supabase = createClient();
   const {
@@ -92,21 +104,31 @@ Return a JSON array of exactly 10 objects, each with:
     return { error: "Failed to generate pitch deck. Please try again." };
   }
 
+  const upsertPayload: Record<string, unknown> = {
+    user_id: user.id,
+    company_name: data.companyName,
+    sector: data.sector,
+    stage: data.stage,
+    country: data.country,
+    website: data.website || null,
+    pitch_data: slides,
+    raw_onboarding_data: data,
+  };
+  if (!isEdit) upsertPayload.is_published = false;
+
+  if (identity) {
+    if (identity.logoUrl !== undefined) upsertPayload.logo_url = identity.logoUrl || null;
+    if (identity.coverImageUrl !== undefined) upsertPayload.cover_image_url = identity.coverImageUrl || null;
+    if (identity.city !== undefined) upsertPayload.city = identity.city || null;
+    if (identity.address !== undefined) upsertPayload.address = identity.address || null;
+    if (identity.foundedYear !== undefined) upsertPayload.founded_year = identity.foundedYear || null;
+    if (identity.employeeCount !== undefined) upsertPayload.employee_count = identity.employeeCount || null;
+    if (identity.linkedinUrl !== undefined) upsertPayload.linkedin_url = identity.linkedinUrl || null;
+  }
+
   const { error: upsertError } = await supabase
     .from("startup_profiles")
-    .upsert(
-      {
-        user_id: user.id,
-        company_name: data.companyName,
-        sector: data.sector,
-        stage: data.stage,
-        country: data.country,
-        website: data.website || null,
-        pitch_data: slides,
-        is_published: false,
-      },
-      { onConflict: "user_id" }
-    );
+    .upsert(upsertPayload, { onConflict: "user_id" });
 
   if (upsertError) return { error: upsertError.message };
 

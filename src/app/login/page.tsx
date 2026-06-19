@@ -4,14 +4,33 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+const inputStyle: React.CSSProperties = {
+  display: "block", width: "100%", padding: "10px 12px",
+  border: "0.5px solid #E2E8F0", borderRadius: 8,
+  fontSize: 14, color: "#0F172A", backgroundColor: "white",
+  outline: "none", transition: "border-color 0.15s, box-shadow 0.15s",
+  boxSizing: "border-box",
+};
+
+function onFocus(e: React.FocusEvent<HTMLInputElement>) {
+  e.target.style.borderColor = "#4F46E5";
+  e.target.style.boxShadow = "0 0 0 3px rgba(79,70,229,0.1)";
+}
+function onBlur(e: React.FocusEvent<HTMLInputElement>) {
+  e.target.style.borderColor = "#E2E8F0";
+  e.target.style.boxShadow = "none";
+}
+
 export default function LoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<"signin" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -26,7 +45,6 @@ export default function LoginPage() {
     }
 
     const role = data.user.user_metadata?.role as string | undefined;
-
     if (role === "admin") {
       router.push("/admin/dashboard");
     } else if (role === "investor") {
@@ -35,12 +53,41 @@ export default function LoginPage() {
       router.push("/startup/dashboard");
     } else {
       const { data: startupProfile } = await supabase
-        .from("startup_profiles")
-        .select("id")
-        .eq("user_id", data.user.id)
-        .single();
+        .from("startup_profiles").select("id").eq("user_id", data.user.id).single();
       router.push(startupProfile ? "/startup/dashboard" : "/investor/dashboard");
     }
+  }
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) { setError("Please enter your email address."); return; }
+    setError(null);
+    setLoading(true);
+
+    const supabase = createClient();
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${origin}/reset-password`,
+    });
+
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      setResetSent(true);
+    }
+  }
+
+  function switchToForgot() {
+    setError(null);
+    setResetSent(false);
+    setMode("forgot");
+  }
+
+  function switchToSignIn() {
+    setError(null);
+    setResetSent(false);
+    setMode("signin");
   }
 
   return (
@@ -55,7 +102,6 @@ export default function LoginPage() {
         display: "flex", flexDirection: "column", justifyContent: "space-between",
         padding: "40px 48px",
       }} className="hidden md:flex">
-        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 32, height: 32, borderRadius: 9,
@@ -67,12 +113,8 @@ export default function LoginPage() {
           <span style={{ fontWeight: 700, fontSize: 16, color: "white", letterSpacing: "-0.3px" }}>StartGrid</span>
         </div>
 
-        {/* Headline */}
         <div>
-          <h2 style={{
-            fontSize: 32, fontWeight: 700, letterSpacing: "-0.6px",
-            color: "white", lineHeight: 1.2, margin: "0 0 16px",
-          }}>
+          <h2 style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.6px", color: "white", lineHeight: 1.2, margin: "0 0 16px" }}>
             Where European startups<br />meet the right investors.
           </h2>
           <p style={{ fontSize: 14, color: "#64748B", lineHeight: 1.65, margin: 0 }}>
@@ -80,11 +122,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Quote */}
-        <div style={{
-          borderLeft: "2.5px solid #4F46E5",
-          paddingLeft: 20,
-        }}>
+        <div style={{ borderLeft: "2.5px solid #4F46E5", paddingLeft: 20 }}>
           <p style={{ fontSize: 13, color: "#94A3B8", lineHeight: 1.7, fontStyle: "italic", margin: "0 0 10px" }}>
             "The quality of conversations on StartGrid is unlike anything I've seen on other platforms."
           </p>
@@ -117,96 +155,143 @@ export default function LoginPage() {
             boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
             padding: "32px",
           }}>
-            <h1 style={{ fontSize: 17, fontWeight: 700, color: "#0F172A", margin: "0 0 4px", letterSpacing: "-0.3px" }}>
-              Sign in to StartGrid
-            </h1>
-            <p style={{ fontSize: 13, color: "#94A3B8", margin: "0 0 28px" }}>
-              Use your invitation credentials
-            </p>
+            {/* ── SIGN IN MODE ── */}
+            {mode === "signin" && (
+              <>
+                <h1 style={{ fontSize: 17, fontWeight: 700, color: "#0F172A", margin: "0 0 4px", letterSpacing: "-0.3px" }}>
+                  Sign in to StartGrid
+                </h1>
+                <p style={{ fontSize: 13, color: "#94A3B8", margin: "0 0 28px" }}>
+                  Use your invitation credentials
+                </p>
 
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  autoComplete="email"
-                  className="sg-input"
-                  style={{
-                    display: "block", width: "100%", padding: "10px 12px",
-                    border: "0.5px solid #E2E8F0", borderRadius: 8,
-                    fontSize: 14, color: "#0F172A", backgroundColor: "white",
-                    outline: "none", transition: "border-color 0.15s, box-shadow 0.15s",
-                    boxSizing: "border-box",
-                  }}
-                  onFocus={e => { e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79,70,229,0.1)"; }}
-                  onBlur={e => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; }}
-                />
-              </div>
+                <form onSubmit={handleSignIn} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      Email
+                    </label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder="you@example.com" required autoComplete="email"
+                      style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                  </div>
 
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  autoComplete="current-password"
-                  style={{
-                    display: "block", width: "100%", padding: "10px 12px",
-                    border: "0.5px solid #E2E8F0", borderRadius: 8,
-                    fontSize: 14, color: "#0F172A", backgroundColor: "white",
-                    outline: "none", transition: "border-color 0.15s, box-shadow 0.15s",
-                    boxSizing: "border-box",
-                  }}
-                  onFocus={e => { e.target.style.borderColor = "#4F46E5"; e.target.style.boxShadow = "0 0 0 3px rgba(79,70,229,0.1)"; }}
-                  onBlur={e => { e.target.style.borderColor = "#E2E8F0"; e.target.style.boxShadow = "none"; }}
-                />
-              </div>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                        Password
+                      </label>
+                      <button type="button" onClick={switchToForgot} style={{
+                        background: "none", border: "none", padding: 0,
+                        fontSize: 11, color: "#6366F1", cursor: "pointer",
+                        textDecoration: "underline", fontFamily: "inherit",
+                      }}>
+                        Forgot your password?
+                      </button>
+                    </div>
+                    <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                      placeholder="••••••••" required autoComplete="current-password"
+                      style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                  </div>
 
-              {error && (
-                <div style={{
-                  backgroundColor: "#FEF2F2", border: "0.5px solid #FECACA",
-                  borderRadius: 8, padding: "10px 14px",
-                }}>
-                  <p style={{ fontSize: 13, color: "#DC2626", margin: 0 }}>{error}</p>
+                  {error && (
+                    <div style={{ backgroundColor: "#FEF2F2", border: "0.5px solid #FECACA", borderRadius: 8, padding: "10px 14px" }}>
+                      <p style={{ fontSize: 13, color: "#DC2626", margin: 0 }}>{error}</p>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={loading} style={{
+                    display: "block", width: "100%", padding: "11px",
+                    background: loading ? "#A5B4FC" : "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                    color: "white", border: "none", borderRadius: 9,
+                    fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
+                    boxShadow: loading ? "none" : "0 4px 12px rgba(79,70,229,0.3)",
+                    transition: "all 0.15s ease", marginTop: 4,
+                  }}>
+                    {loading ? "Signing in…" : "Sign in"}
+                  </button>
+                </form>
+
+                <div style={{ marginTop: 20, padding: "12px 14px", backgroundColor: "#EEF2FF", borderRadius: 8, border: "0.5px solid #C7D2FE" }}>
+                  <p style={{ fontSize: 12, color: "#4338CA", margin: 0, lineHeight: 1.55 }}>
+                    Don't have access? You need an invitation from the StartGrid team.
+                  </p>
                 </div>
-              )}
+              </>
+            )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  display: "block", width: "100%", padding: "11px",
-                  background: loading ? "#A5B4FC" : "linear-gradient(135deg, #4F46E5, #7C3AED)",
-                  color: "white", border: "none", borderRadius: 9,
-                  fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
-                  boxShadow: loading ? "none" : "0 4px 12px rgba(79,70,229,0.3)",
-                  transition: "all 0.15s ease",
-                  marginTop: 4,
-                }}
-              >
-                {loading ? "Signing in…" : "Sign in"}
-              </button>
-            </form>
+            {/* ── FORGOT PASSWORD MODE ── */}
+            {mode === "forgot" && !resetSent && (
+              <>
+                <h1 style={{ fontSize: 17, fontWeight: 700, color: "#0F172A", margin: "0 0 4px", letterSpacing: "-0.3px" }}>
+                  Reset your password
+                </h1>
+                <p style={{ fontSize: 13, color: "#94A3B8", margin: "0 0 28px" }}>
+                  Enter your email and we'll send you a reset link
+                </p>
 
-            <div style={{
-              marginTop: 20, padding: "12px 14px",
-              backgroundColor: "#EEF2FF", borderRadius: 8,
-              border: "0.5px solid #C7D2FE",
-            }}>
-              <p style={{ fontSize: 12, color: "#4338CA", margin: 0, lineHeight: 1.55 }}>
-                Don't have access? You need an invitation from the StartGrid team.
-              </p>
-            </div>
+                <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      Email
+                    </label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder="you@example.com" required autoComplete="email"
+                      style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+
+                  {error && (
+                    <div style={{ backgroundColor: "#FEF2F2", border: "0.5px solid #FECACA", borderRadius: 8, padding: "10px 14px" }}>
+                      <p style={{ fontSize: 13, color: "#DC2626", margin: 0 }}>{error}</p>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={loading} style={{
+                    display: "block", width: "100%", padding: "11px",
+                    background: loading ? "#A5B4FC" : "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                    color: "white", border: "none", borderRadius: 9,
+                    fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
+                    boxShadow: loading ? "none" : "0 4px 12px rgba(79,70,229,0.3)",
+                    transition: "all 0.15s ease", marginTop: 4,
+                  }}>
+                    {loading ? "Sending…" : "Send reset link"}
+                  </button>
+                </form>
+
+                <button type="button" onClick={switchToSignIn} style={{
+                  background: "none", border: "none", padding: 0, marginTop: 20,
+                  fontSize: 12, color: "#94A3B8", cursor: "pointer",
+                  textDecoration: "underline", fontFamily: "inherit", display: "block",
+                }}>
+                  ← Back to sign in
+                </button>
+              </>
+            )}
+
+            {/* ── RESET EMAIL SENT ── */}
+            {mode === "forgot" && resetSent && (
+              <div style={{ textAlign: "center", padding: "8px 0" }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: "50%",
+                  backgroundColor: "#ECFDF5", border: "1.5px solid #A7F3D0",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  margin: "0 auto 16px", fontSize: 20,
+                }}>✓</div>
+                <h2 style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", margin: "0 0 8px", letterSpacing: "-0.3px" }}>
+                  Check your email
+                </h2>
+                <p style={{ fontSize: 13, color: "#64748B", lineHeight: 1.65, margin: "0 0 20px" }}>
+                  We've sent a password reset link to{" "}
+                  <span style={{ fontWeight: 600, color: "#0F172A" }}>{email}</span>
+                </p>
+                <button type="button" onClick={switchToSignIn} style={{
+                  background: "none", border: "none", padding: 0,
+                  fontSize: 12, color: "#6366F1", cursor: "pointer",
+                  textDecoration: "underline", fontFamily: "inherit",
+                }}>
+                  ← Back to sign in
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
