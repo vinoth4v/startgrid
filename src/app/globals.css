@@ -141,14 +141,14 @@ html {
   /* Nav link hover (used in server components instead of onMouseEnter) */
   .sg-nav-link {
     font-size: 13px;
-    color: #475569;
+    color: #6B7280;
     font-weight: 500;
     text-decoration: none;
     transition: color 0.15s;
   }
 
   .sg-nav-link:hover {
-    color: #0B1628;
+    color: #111827;
   }
 }
 
