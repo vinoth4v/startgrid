@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getBroadcastMessages } from "@/app/actions/broadcast";
 import BroadcastClient from "./BroadcastClient";
 

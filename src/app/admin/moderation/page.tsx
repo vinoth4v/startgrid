@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getModerationQueue } from "@/app/actions/moderation";
 import ModerationClient from "./ModerationClient";
 

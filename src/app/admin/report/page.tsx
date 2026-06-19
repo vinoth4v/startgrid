@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getReportHistory } from "@/app/actions/admin-report";
 import ReportClient from "./ReportClient";
 

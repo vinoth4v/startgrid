@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getAllPrompts } from "@/app/actions/ai-prompts";
 import PromptsClient from "./PromptsClient";
 

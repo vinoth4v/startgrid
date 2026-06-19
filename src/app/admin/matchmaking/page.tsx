@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getMatchPairs } from "@/app/actions/matchmaking";
 import MatchmakingClient from "./MatchmakingClient";
 
