@@ -152,6 +152,7 @@ export default function Sidebar({ role, userInitials, userName, userEmail, userI
 
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const avatarRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -177,15 +178,47 @@ export default function Sidebar({ role, userInitials, userName, userEmail, userI
   }
 
   return (
+    <>
+    {/* Mobile hamburger button — only visible on small screens */}
+    <button
+      type="button"
+      onClick={() => setMobileOpen(true)}
+      aria-label="Open menu"
+      style={{
+        display: "none",
+        position: "fixed", top: 12, left: 12, zIndex: 60,
+        width: 38, height: 38, borderRadius: 10,
+        backgroundColor: "#0C1E35", border: "none",
+        color: "white", cursor: "pointer",
+        alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 4,
+      }}
+      className="mobile-hamburger"
+    >
+      <span style={{ display: "block", width: 18, height: 2, backgroundColor: "white", borderRadius: 1 }} />
+      <span style={{ display: "block", width: 18, height: 2, backgroundColor: "white", borderRadius: 1 }} />
+      <span style={{ display: "block", width: 18, height: 2, backgroundColor: "white", borderRadius: 1 }} />
+    </button>
+
+    {/* Mobile overlay */}
+    {mobileOpen && (
+      <div
+        style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 55 }}
+        onClick={() => setMobileOpen(false)}
+      />
+    )}
+
     <nav style={{
-      position: "fixed", left: 0, top: 0,
+      position: "fixed", left: mobileOpen ? 0 : undefined, top: 0,
       width: 56, height: "100vh",
       backgroundColor: "#0C1E35",
       display: "flex", flexDirection: "column",
       alignItems: "center", padding: "14px 0",
       zIndex: 50,
       borderRight: "1px solid rgba(255,255,255,0.06)",
-    }}>
+      transition: "transform 0.2s",
+    }}
+    className={mobileOpen ? "sidebar-mobile-open" : ""}
+    >
       {/* Logo mark */}
       <Link href="/" title="StartGrid" style={{
         width: 32, height: 32, borderRadius: 9,
@@ -295,20 +328,21 @@ export default function Sidebar({ role, userInitials, userName, userEmail, userI
               My profile
             </Link>
 
-            {/* Settings (placeholder) */}
-            <button
-              type="button"
-              disabled
+            {/* Settings */}
+            <Link
+              href="/settings"
+              onClick={() => setPopoverOpen(false)}
               style={{
                 display: "flex", alignItems: "center", gap: 8,
-                padding: "8px 10px", borderRadius: 7, width: "100%",
-                fontSize: 13, fontWeight: 500, color: "#CBD5E1",
-                background: "none", border: "none", cursor: "not-allowed",
-                textAlign: "left",
+                padding: "8px 10px", borderRadius: 7,
+                fontSize: 13, fontWeight: 500, color: "#0F172A",
+                textDecoration: "none", transition: "background 0.1s",
               }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#F8FAFC")}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
             >
               Settings
-            </button>
+            </Link>
 
             <div style={{ height: "0.5px", backgroundColor: "#F1F5F9", margin: "4px 0" }} />
 
@@ -336,5 +370,6 @@ export default function Sidebar({ role, userInitials, userName, userEmail, userI
         )}
       </div>
     </nav>
+    </>
   );
 }

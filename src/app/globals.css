@@ -206,6 +206,38 @@ body, *, *::before, *::after {
   transition: none !important;
 }
 
+/* ── Mobile responsiveness ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Show hamburger, hide icon sidebar */
+  .mobile-hamburger {
+    display: flex !important;
+  }
+
+  /* Slide sidebar in as drawer when open */
+  nav.sidebar-mobile-open {
+    transform: translateX(0) !important;
+    width: 220px !important;
+    align-items: flex-start !important;
+    padding: 14px 12px !important;
+  }
+
+  /* Default: slide offscreen */
+  nav:not(.sidebar-mobile-open) {
+    transform: translateX(-100%);
+  }
+
+  /* Main content takes full width */
+  main[style*="marginLeft: 56"] {
+    margin-left: 0 !important;
+    padding: 56px 16px 24px !important;
+  }
+
+  /* Admin pages */
+  main[style*="marginLeft: 220"] {
+    margin-left: 0 !important;
+  }
+}
+
 /* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 4px;

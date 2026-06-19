@@ -7,6 +7,17 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createNotification } from "./notifications";
 
+function emailHtml(greeting: string, body: string, siteUrl: string, cta: string): string {
+  return `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;background:#F8FAFC">
+    <div style="background:white;border-radius:12px;padding:28px;border:0.5px solid #E2E8F0">
+      <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#4F46E5;text-transform:uppercase;letter-spacing:0.06em">StartGrid</p>
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:#0F172A">${greeting}</h2>
+      <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.6">${body}</p>
+      <a href="${siteUrl}/messages" style="display:inline-block;padding:10px 22px;background:#4F46E5;color:white;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">${cta}</a>
+    </div>
+  </div>`;
+}
+
 export async function acceptConnection(connectionId: string): Promise<{ error?: string }> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -140,8 +151,11 @@ export async function sendMessage(
 
     if (conn) {
       const role = user.user_metadata?.role as string;
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://startgrid.co";
+      const from = "StartGrid <noreply@startgrid.co>";
+
       if (role === "startup") {
-        // Sender is startup → notify investor
         const [{ data: inv }, { data: s }] = await Promise.all([
           admin.from("investor_profiles").select("user_id, name").eq("id", conn.investor_id).single(),
           admin.from("startup_profiles").select("company_name").eq("id", conn.startup_id).single(),
@@ -154,9 +168,16 @@ export async function sendMessage(
             body: `${s?.company_name ?? "A startup"} sent you a message.`,
             link: "/messages",
           });
+          const { data: invUser } = await admin.auth.admin.getUserById(inv.user_id);
+          if (invUser?.user?.email) {
+            await resend.emails.send({
+              from, to: invUser.user.email,
+              subject: `New message from ${s?.company_name ?? "a startup"} on StartGrid`,
+              html: emailHtml(`Hi ${inv.name},`, `<strong>${s?.company_name ?? "A startup"}</strong> sent you a message on StartGrid.`, siteUrl, "Read message →"),
+            });
+          }
         }
       } else {
-        // Sender is investor → notify startup
         const [{ data: s }, { data: inv }] = await Promise.all([
           admin.from("startup_profiles").select("user_id, company_name").eq("id", conn.startup_id).single(),
           admin.from("investor_profiles").select("name").eq("id", conn.investor_id).single(),
@@ -169,6 +190,14 @@ export async function sendMessage(
             body: `${inv?.name ?? "An investor"} sent you a message.`,
             link: "/messages",
           });
+          const { data: startupUser } = await admin.auth.admin.getUserById(s.user_id);
+          if (startupUser?.user?.email) {
+            await resend.emails.send({
+              from, to: startupUser.user.email,
+              subject: `New message from ${inv?.name ?? "an investor"} on StartGrid`,
+              html: emailHtml(`Hi ${s.company_name},`, `<strong>${inv?.name ?? "An investor"}</strong> sent you a message on StartGrid.`, siteUrl, "Read message →"),
+            });
+          }
         }
       }
     }

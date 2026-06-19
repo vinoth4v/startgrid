@@ -103,6 +103,7 @@ export default async function MessagesPage({
       logoUrl: startup?.logo_url ?? null,
       firm: investor?.firm ?? null,
       startupId: startup?.id ?? null,
+      investorId: investor?.id ?? null,
       lastMessage: null as string | null,
       lastAt: c.created_at,
     };

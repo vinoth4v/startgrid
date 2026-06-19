@@ -15,6 +15,7 @@ interface Thread {
   logoUrl?: string | null;
   firm?: string | null;
   startupId?: string | null;
+  investorId?: string | null;
   lastMessage: string | null;
   lastAt: string;
 }
@@ -403,6 +404,16 @@ export default function MessagesClient({
               fontSize: 11, fontWeight: 600, color: "#4F46E5", textDecoration: "none",
             }}>
               View full profile →
+            </a>
+          )}
+          {myRole === "startup" && activeThread.investorId && (
+            <a href={`/investor/profile/${activeThread.investorId}`} style={{
+              display: "block", textAlign: "center",
+              padding: "8px 0", borderRadius: 8,
+              border: "0.5px solid #C7D2FE", backgroundColor: "#EEF2FF",
+              fontSize: 11, fontWeight: 600, color: "#4F46E5", textDecoration: "none",
+            }}>
+              View investor profile →
             </a>
           )}
         </aside>

@@ -89,7 +89,9 @@ export default function ConnectionsClient({ connections, myRole }: Props) {
   const profileHref = (c: Connection) =>
     c.role === "startup"
       ? `/investor/startup/${c.startupId}`
-      : `/startup/dashboard`;
+      : c.investorId
+        ? `/investor/profile/${c.investorId}`
+        : `/startup/dashboard`;
 
   return (
     <div style={{
