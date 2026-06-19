@@ -5,13 +5,12 @@ import { Separator } from "@/components/ui/separator";
 import InviteForm from "./InviteForm";
 import InvitationTable from "./InvitationTable";
 import AdminTabs from "./AdminTabs";
-import Sidebar from "@/components/Sidebar";
 
 export default async function AdminDashboardPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || user.user_metadata?.role !== "admin") redirect("/login");
+  if (!user) redirect("/login");
 
   const admin = createAdminClient();
 
@@ -126,13 +125,11 @@ export default async function AdminDashboardPage() {
   });
 
   return (
-    <>
-      <Sidebar role="admin" userInitials="AD" userName={user.email ?? "Admin"} userEmail={user.email ?? ""} userId={user.id} />
-      <main style={{
-        marginLeft: 56, minHeight: "100vh",
-        backgroundColor: "#F8FAFC",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      }}>
+    <main style={{
+      minHeight: "100vh",
+      backgroundColor: "#F8FAFC",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    }}>
         {/* Header */}
         <div style={{
           backgroundColor: "white", borderBottom: "0.5px solid #E2E8F0",
@@ -204,7 +201,6 @@ export default async function AdminDashboardPage() {
             <AdminTabs members={members} connections={connections} messages={messages} accessRequests={accessRequests} />
           </div>
         </div>
-      </main>
-    </>
+    </main>
   );
 }
