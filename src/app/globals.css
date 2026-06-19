@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -24,35 +28,32 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
-  }
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    /* StartGrid design tokens */
+    --navy: #0B1628;
+    --sg-indigo: #4F46E5;
+    --sg-indigo-mid: #6366F1;
+    --sg-indigo-purple: #7C3AED;
+    --sg-indigo-light: #EEF2FF;
+    --sg-indigo-border: #C7D2FE;
+    --sg-surface: #F8FAFC;
+    --sg-card: #FFFFFF;
+    --sg-border: #E2E8F0;
+    --sg-text-primary: #0F172A;
+    --sg-text-secondary: #475569;
+    --sg-text-muted: #94A3B8;
+    --sg-green: #059669;
+    --sg-green-light: #ECFDF5;
+    --sg-amber: #D97706;
+    --sg-amber-light: #FFFBEB;
   }
 
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
   }
 }
 
@@ -60,4 +61,109 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Dot-grid background — StartGrid signature element */
+  .dot-grid {
+    background-image: radial-gradient(circle, rgba(79, 70, 229, 0.2) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Dot-grid for light backgrounds */
+  .dot-grid-light {
+    background-image: radial-gradient(circle, rgba(79, 70, 229, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Gradient text utility */
+  .text-gradient {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Primary gradient button */
+  .btn-gradient {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+    border-radius: 9px;
+    font-weight: 600;
+    color: white;
+    transition: all 0.15s ease;
+  }
+
+  .btn-gradient:hover {
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-gradient:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+  }
+
+  .btn-gradient:disabled {
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Card standard */
+  .sg-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 0.5px solid #E2E8F0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Input standard */
+  .sg-input {
+    border: 0.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+    background: white;
+    color: #0F172A;
+    outline: none;
+  }
+
+  .sg-input:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .sg-input::placeholder {
+    color: #94A3B8;
+  }
+
+  /* Nav link hover (used in server components instead of onMouseEnter) */
+  .sg-nav-link {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .sg-nav-link:hover {
+    color: #0B1628;
+  }
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C7D2FE;
 }
