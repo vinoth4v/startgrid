@@ -233,6 +233,95 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── TESTIMONIALS ── */}
+      <section style={{ padding: "80px 24px", backgroundColor: "white" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 52 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "#4F46E5", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>WHAT THEY SAY</p>
+            <h2 style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.6px", margin: "0 0 12px" }}>Trusted by founders and investors across Europe</h2>
+            <p style={{ fontSize: 15, color: "#64748B", margin: 0 }}>From pre-seed to Series A — across 12 countries.</p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+            {[
+              {
+                quote: "StartGrid cut through the noise completely. Within two weeks of publishing our pitch deck, we had three serious investors reach out — all the right fit for our stage and sector. It felt nothing like cold outreach.",
+                name: "Sophie Laurent",
+                role: "Co-founder & CEO",
+                company: "Lumio Health",
+                country: "🇫🇷 Paris",
+                initials: "SL",
+                color: "#4F46E5",
+              },
+              {
+                quote: "The quality gap here is significant. Every startup has a proper deck, clear stage, and real traction data. I spend far less time on screening and far more time on conversations that actually go somewhere.",
+                name: "Marcus Wieland",
+                role: "Partner",
+                company: "Nordvik Ventures",
+                country: "🇸🇪 Stockholm",
+                initials: "MW",
+                color: "#7C3AED",
+              },
+              {
+                quote: "The invitation-only model is what made us trust the platform. We knew every investor viewing our deck was serious. We closed our seed round six weeks after joining — faster than we ever expected.",
+                name: "Arjun Mehta",
+                role: "Founder",
+                company: "Fieldsense AI",
+                country: "🇩🇪 Berlin",
+                initials: "AM",
+                color: "#059669",
+              },
+            ].map(({ quote, name, role, company, country, initials, color }) => (
+              <div key={name} style={{
+                backgroundColor: "white", borderRadius: 12,
+                border: "0.5px solid #E2E8F0",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                padding: "28px",
+                display: "flex", flexDirection: "column",
+              }}>
+                <span style={{ fontSize: 40, lineHeight: 1, color: "#C7D2FE", fontFamily: "Georgia, serif", marginBottom: 12 }}>"</span>
+                <p style={{ fontSize: 14, color: "#334155", lineHeight: 1.8, margin: "0 0 20px", flex: 1 }}>{quote}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 16, borderTop: "0.5px solid #F1F5F9" }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+                    backgroundColor: color,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "white", fontWeight: 700, fontSize: 13,
+                  }}>{initials}</div>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{name}</p>
+                    <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>{role} · {company}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#94A3B8", marginTop: 1 }}>{country}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Social proof bar */}
+          <div style={{
+            marginTop: 48,
+            backgroundColor: "#F8FAFC", borderRadius: 12,
+            border: "0.5px solid #E2E8F0",
+            padding: "20px 32px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: 40, flexWrap: "wrap",
+          }}>
+            {[
+              { value: "€2.4B+", label: "Capital represented by investors" },
+              { value: "12", label: "European countries" },
+              { value: "100%", label: "Invitation-only access" },
+              { value: "48h", label: "Average response time" },
+            ].map(({ value, label }) => (
+              <div key={label} style={{ textAlign: "center" }}>
+                <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#0F172A", letterSpacing: "-0.5px" }}>{value}</p>
+                <p style={{ margin: "3px 0 0", fontSize: 11, color: "#94A3B8", fontWeight: 500 }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── WHO IS IT FOR ── */}
       <section style={{
         padding: "80px 24px",
