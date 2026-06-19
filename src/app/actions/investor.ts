@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 import { redirect } from "next/navigation";
+import { createNotification } from "./notifications";
 
 export interface InvestorCriteria {
   role: string;
@@ -101,6 +102,27 @@ export async function sendConnectionRequest(
     }
   } catch {
     // email failure should not block the connection request
+  }
+
+  // In-app notification for startup founder
+  try {
+    const admin = createAdminClient();
+    const { data: startupProfile } = await admin
+      .from("startup_profiles")
+      .select("user_id, company_name")
+      .eq("id", startupId)
+      .single();
+    if (startupProfile) {
+      await createNotification({
+        userId: startupProfile.user_id,
+        type: "connection_request",
+        title: "New connection request",
+        body: `${investorProfile.name}${investorProfile.firm ? ` from ${investorProfile.firm}` : ""} wants to connect with you.`,
+        link: "/startup/dashboard",
+      });
+    }
+  } catch {
+    // notification failure must not block the request
   }
 
   return { success: true };

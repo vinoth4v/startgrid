@@ -21,6 +21,7 @@ interface Props {
   startups: Startup[];
   connectionMap: Record<string, string>;
   favouriteIds: string[];
+  notedStartupIds: string[];
 }
 
 function initials(name: string | null): string {
@@ -79,12 +80,13 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   );
 }
 
-export default function InvestorDashboard({ investorId, investorName, criteria, startups, connectionMap, favouriteIds }: Props) {
+export default function InvestorDashboard({ investorId, investorName, criteria, startups, connectionMap, favouriteIds, notedStartupIds }: Props) {
   const [activeStages, setActiveStages] = useState<string[]>([]);
   const [activeSectors, setActiveSectors] = useState<string[]>([]);
   const [activeGeos, setActiveGeos] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "favourites">("all");
   const [favSet, setFavSet] = useState<Set<string>>(() => new Set(favouriteIds));
+  const notedSet = new Set(notedStartupIds);
   const [toast, setToast] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState(0);
 
@@ -262,6 +264,7 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
             {filtered.map(startup => {
               const status = connectionMap[startup.id];
               const isFav = favSet.has(startup.id);
+              const hasNote = notedSet.has(startup.id);
               const stageColor = STAGE_COLORS[startup.stage ?? ""] ?? "#6366F1";
               return (
                 <div key={startup.id} style={{
@@ -282,23 +285,27 @@ export default function InvestorDashboard({ investorId, investorName, criteria, 
                     (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
                   }}
                 >
-                  {/* Heart button */}
-                  <button
-                    type="button"
-                    onClick={() => handleFavourite(startup.id)}
-                    title={isFav ? "Remove from favourites" : "Add to favourites"}
-                    style={{
-                      position: "absolute", top: 14, right: 14,
-                      background: "none", border: "none", cursor: "pointer",
-                      fontSize: 17, lineHeight: 1, padding: 4,
-                      color: isFav ? "#F472B6" : "#CBD5E1",
-                      transition: "color 0.15s, transform 0.1s",
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.2)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
-                  >
-                    {isFav ? "♥" : "♡"}
-                  </button>
+                  {/* Notes indicator + Heart button */}
+                  <div style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 2 }}>
+                    {hasNote && (
+                      <span title="You have notes on this startup" style={{ fontSize: 13, lineHeight: 1, padding: 4 }}>📝</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleFavourite(startup.id)}
+                      title={isFav ? "Remove from favourites" : "Add to favourites"}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        fontSize: 17, lineHeight: 1, padding: 4,
+                        color: isFav ? "#F472B6" : "#CBD5E1",
+                        transition: "color 0.15s, transform 0.1s",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.2)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+                    >
+                      {isFav ? "♥" : "♡"}
+                    </button>
+                  </div>
 
                   {/* Company header */}
                   <div style={{ display: "flex", alignItems: "center", gap: 12, paddingRight: 24 }}>

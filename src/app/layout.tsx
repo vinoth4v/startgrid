@@ -16,6 +16,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Prevent flash of unstyled dark mode */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            try {
+              var t = localStorage.getItem('sg-theme');
+              var p = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              document.documentElement.setAttribute('data-theme', t ? t : (p ? 'dark' : 'light'));
+            } catch(e) {}
+          })();
+        ` }} />
+      </head>
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   );

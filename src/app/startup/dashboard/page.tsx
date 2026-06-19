@@ -4,7 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PitchSlide } from "@/app/actions/generate-pitch";
 import ConnectionRequests from "./ConnectionRequests";
+import ProfileStrength from "./ProfileStrength";
+import ShareCard from "./ShareCard";
+import MilestonesSection from "./MilestonesSection";
 import Sidebar from "@/components/Sidebar";
+import { getMilestones } from "@/app/actions/milestones";
 
 function initials(name: string | null | undefined): string {
   if (!name) return "SU";
@@ -58,11 +62,13 @@ export default async function StartupDashboardPage() {
     }
   }
 
+  const milestones = profile?.id ? await getMilestones(profile.id) : [];
+
   const userInitials = initials(profile?.company_name ?? user.user_metadata?.full_name);
 
   return (
     <>
-      <Sidebar role="startup" userInitials={userInitials} />
+      <Sidebar role="startup" userInitials={userInitials} userName={profile?.company_name ?? user.user_metadata?.full_name ?? ""} userEmail={user.email ?? ""} userId={user.id} />
 
       <div style={{ marginLeft: 56, minHeight: "100vh", backgroundColor: "#F8FAFC", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
 
@@ -97,6 +103,9 @@ export default async function StartupDashboardPage() {
 
           {/* Connection requests */}
           {pendingRequests.length > 0 && <ConnectionRequests requests={pendingRequests} />}
+
+          {/* Profile strength (only when profile exists) */}
+          {hasProfile && <ProfileStrength profile={profile} slides={slides} />}
 
           {/* No profile */}
           {!hasProfile ? (
@@ -252,6 +261,19 @@ export default async function StartupDashboardPage() {
                     Publish profile →
                   </Link>
                 </div>
+              )}
+
+              {/* Share pitch */}
+              {profile.is_published && (
+                <ShareCard
+                  initialToken={profile.share_token ?? null}
+                  baseUrl={process.env.NEXT_PUBLIC_APP_URL ?? "https://startgrid.vercel.app"}
+                />
+              )}
+
+              {/* Milestones */}
+              {hasProfile && (
+                <MilestonesSection startupId={profile.id} initialMilestones={milestones} />
               )}
 
               {/* Messages link */}

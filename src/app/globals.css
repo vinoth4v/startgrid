@@ -152,6 +152,60 @@ html {
   }
 }
 
+/* ── Dark mode ─────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --sg-surface: #0F172A;
+  --sg-card: #1E293B;
+  --sg-border: #334155;
+  --sg-text-primary: #F1F5F9;
+  --sg-text-secondary: #94A3B8;
+  --sg-text-muted: #64748B;
+  --background: 222 47% 11%;
+  --foreground: 210 40% 96%;
+  --card: 222 47% 16%;
+  --card-foreground: 210 40% 96%;
+  --border: 215 28% 25%;
+  --input: 215 28% 25%;
+}
+
+[data-theme="dark"] body {
+  background: #0F172A;
+  color: #F1F5F9;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Apply dark mode to page surfaces */
+[data-theme="dark"] .sg-card,
+[data-theme="dark"] [style*="backgroundColor: white"],
+[data-theme="dark"] [style*='backgroundColor: "white"'] {
+  background-color: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] [style*="backgroundColor: \"#F8FAFC\""],
+[data-theme="dark"] [style*="backgroundColor: #F8FAFC"] {
+  background-color: #0F172A !important;
+}
+
+/* Dark mode card/input text */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: #1E293B !important;
+  color: #F1F5F9 !important;
+  border-color: #334155 !important;
+}
+
+/* Global transition for smooth theme switch */
+body, *, *::before, *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* But don't animate layout transitions */
+.no-transition, .no-transition * {
+  transition: none !important;
+}
+
 /* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 4px;

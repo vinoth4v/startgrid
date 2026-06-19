@@ -4,7 +4,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { PitchSlide } from "@/app/actions/generate-pitch";
 import ConnectButton from "./ConnectButton";
 import PitchSection from "./PitchSection";
+import PrivateNotes from "./PrivateNotes";
+import MilestonesTimeline from "./MilestonesTimeline";
 import Sidebar from "@/components/Sidebar";
+import { getNote } from "@/app/actions/investor-notes";
+import { getMilestones } from "@/app/actions/milestones";
 
 function initials(name: string | null): string {
   if (!name) return "?";
@@ -46,12 +50,15 @@ export default async function StartupProfilePage({ params }: { params: { id: str
 
   const slides: PitchSlide[] = Array.isArray(startup.pitch_data) ? (startup.pitch_data as PitchSlide[]) : [];
 
+  const existingNote = investorProfile ? await getNote(investorProfile.id, startup.id) : "";
+  const milestones = await getMilestones(startup.id);
+
   const userInitials = (investorProfile?.name ?? "")
     .split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase() || "IN";
 
   return (
     <>
-      <Sidebar role="investor" userInitials={userInitials} />
+      <Sidebar role="investor" userInitials={userInitials} userName={investorProfile?.name ?? ""} userEmail={user.email ?? ""} userId={user.id} />
 
       <main style={{
         marginLeft: 56, minHeight: "100vh", backgroundColor: "#F8FAFC",
@@ -146,6 +153,18 @@ export default async function StartupProfilePage({ params }: { params: { id: str
 
           {/* Pitch deck */}
           {slides.length > 0 && <PitchSection slides={slides} />}
+
+          {/* Milestones */}
+          <MilestonesTimeline milestones={milestones} />
+
+          {/* Private notes */}
+          {investorProfile && (
+            <PrivateNotes
+              investorId={investorProfile.id}
+              startupId={startup.id}
+              initialContent={existingNote}
+            />
+          )}
 
           {/* Connect card */}
           <div style={{

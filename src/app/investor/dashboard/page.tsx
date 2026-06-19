@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import InvestorDashboard from "./InvestorDashboard";
 import Sidebar from "@/components/Sidebar";
+import { getNoteExistence } from "@/app/actions/investor-notes";
 
 export default async function InvestorDashboardPage() {
   const supabase = createClient();
@@ -46,12 +47,15 @@ export default async function InvestorDashboardPage() {
 
   const favouriteIds = (favourites ?? []).map((f: { startup_id: string }) => f.startup_id);
 
+  const startupIds = (startups ?? []).map((s: { id: string }) => s.id);
+  const notedStartupIds = await getNoteExistence(investorProfile.id, startupIds);
+
   const userInitials = investorProfile.name
     .split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <>
-      <Sidebar role="investor" userInitials={userInitials} />
+      <Sidebar role="investor" userInitials={userInitials} userName={investorProfile.name} userEmail={user.email ?? ""} userId={user.id} />
       <InvestorDashboard
         investorId={investorProfile.id}
         investorName={investorProfile.name}
@@ -59,6 +63,7 @@ export default async function InvestorDashboardPage() {
         startups={startups ?? []}
         connectionMap={connectionMap}
         favouriteIds={favouriteIds}
+        notedStartupIds={notedStartupIds}
       />
     </>
   );

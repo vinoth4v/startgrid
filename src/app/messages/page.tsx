@@ -53,7 +53,7 @@ export default async function MessagesPage({
   if (!connections || connections.length === 0) {
     return (
       <>
-        <Sidebar role={role} userInitials={userInitials} />
+        <Sidebar role={role} userInitials={userInitials} userName={myDisplayName} userEmail={user.email ?? ""} userId={user.id} />
         <MessagesClient
           userId={user.id}
           threads={[]}

@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createNotification } from "./notifications";
 
 export async function acceptConnection(connectionId: string): Promise<{ error?: string }> {
   const supabase = createClient();
@@ -67,6 +68,21 @@ export async function acceptConnection(connectionId: string): Promise<{ error?: 
     }
   }
 
+  // In-app notification for investor
+  if (investorProfile) {
+    try {
+      await createNotification({
+        userId: investorProfile.user_id,
+        type: "connection_accepted",
+        title: "Connection accepted",
+        body: `${startupProfile.company_name} accepted your connection request. You can now message them.`,
+        link: "/messages",
+      });
+    } catch {
+      // notification failure must not block
+    }
+  }
+
   redirect("/messages");
 }
 
@@ -113,6 +129,53 @@ export async function sendMessage(
   });
 
   if (error) return { error: error.message };
+
+  // Notify the other party
+  try {
+    const { data: conn } = await admin
+      .from("connections")
+      .select("investor_id, startup_id")
+      .eq("id", connectionId)
+      .single();
+
+    if (conn) {
+      const role = user.user_metadata?.role as string;
+      if (role === "startup") {
+        // Sender is startup → notify investor
+        const [{ data: inv }, { data: s }] = await Promise.all([
+          admin.from("investor_profiles").select("user_id, name").eq("id", conn.investor_id).single(),
+          admin.from("startup_profiles").select("company_name").eq("id", conn.startup_id).single(),
+        ]);
+        if (inv) {
+          await createNotification({
+            userId: inv.user_id,
+            type: "new_message",
+            title: "New message",
+            body: `${s?.company_name ?? "A startup"} sent you a message.`,
+            link: "/messages",
+          });
+        }
+      } else {
+        // Sender is investor → notify startup
+        const [{ data: s }, { data: inv }] = await Promise.all([
+          admin.from("startup_profiles").select("user_id, company_name").eq("id", conn.startup_id).single(),
+          admin.from("investor_profiles").select("name").eq("id", conn.investor_id).single(),
+        ]);
+        if (s) {
+          await createNotification({
+            userId: s.user_id,
+            type: "new_message",
+            title: "New message",
+            body: `${inv?.name ?? "An investor"} sent you a message.`,
+            link: "/messages",
+          });
+        }
+      }
+    }
+  } catch {
+    // notification failure must not block message send
+  }
+
   return {};
 }
 

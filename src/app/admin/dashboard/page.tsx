@@ -127,7 +127,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <>
-      <Sidebar role="admin" userInitials="AD" />
+      <Sidebar role="admin" userInitials="AD" userName={user.email ?? "Admin"} userEmail={user.email ?? ""} userId={user.id} />
       <main style={{
         marginLeft: 56, minHeight: "100vh",
         backgroundColor: "#F8FAFC",
