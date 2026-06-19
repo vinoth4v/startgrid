@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { BroadcastMessage, BroadcastSegment, sendBroadcast, getSegmentPreview, TEMPLATES } from "@/app/actions/broadcast";
+import { BroadcastMessage, BroadcastSegment, sendBroadcast, getSegmentPreview } from "@/app/actions/broadcast";
+import { TEMPLATES } from "@/app/actions/broadcast-templates";
 
 const SEGMENTS: { value: BroadcastSegment; label: string; desc: string }[] = [
   { value: "all", label: "Everyone", desc: "All registered users" },
